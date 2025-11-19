@@ -1,15 +1,15 @@
 import { Route, Routes } from "react-router";
 import Main from "../pages/main";
-import Signin from "../pages/signin/indext";
-import Signup from "../pages/signup/indext";
+import Signin from "../pages/signin/index";
+import Signup from "../pages/signup/index";
 import Layout from "./Layout";
 export default function RoutesSetup() {
     return (
         <Routes>
-            <Route path="/" element={<Layout/>}>
-                <Route index element={<Main/>}/>
-                <Route path="/sign-in" element={<Signin/>}/>
-                <Route path="/sign-up" element={<Signup/>}/>
+            <Route path="/" element={<Layout />}>
+                <Route index element={<Main />} />
+                <Route path="/sign-in" element={<Signin />} />
+                <Route path="/sign-up" element={<Signup />} />
             </Route>
         </Routes>
     )
