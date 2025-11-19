@@ -1,8 +1,10 @@
 
+export type WeatherCategory = "T1H" | "RN1" | "UUU" | "VVV" | "REH" | "PTY" | "VEC" | "WSD"
+
 interface WeatherItem {
     baseDate: string; // YYYYMMDD
     baseTime: string; // HHmm
-    category: string; // PTY, REH 등
+    category: WeatherCategory
     nx: number;
     ny: number;
     obsrValue: string; // 관측값
