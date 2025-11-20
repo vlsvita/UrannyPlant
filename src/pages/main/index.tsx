@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import getWeather from "../../api/weather";
 import type { WeatherResponse } from "../../types/weather";
 import PlantGIF from "../../assets/gif/plant.gif";
+import BackgorundImg from "../../assets/images/background.png"
 import formatCategory from "../../utils/FormatCategory";
 import type { UserData } from "../../types/user";
 import { getUserData } from "../../api/user";
