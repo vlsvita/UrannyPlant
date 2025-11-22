@@ -2,17 +2,33 @@ import { useCallback, useEffect, useState } from "react";
 import getWeather from "../../api/weather";
 import type { WeatherResponse } from "../../types/weather";
 import PlantGIF from "../../assets/gif/plant.gif";
-import BackgorundImg from "../../assets/images/background.png";
+import DiaryGIF from "../../assets/gif/diary.gif";
+import WindowGIF from "../../assets/gif/background/window.gif";
+import SunnyGIF from "../../assets/gif/background/sunny.gif"
+import RainyGIF from "../../assets/gif/background/rainy.gif"
+import DefaultGIF from "../../assets/gif/background/default.gif";
+import SnowyGIF from "../../assets/gif/background/snowy.gif";
 import formatCategory from "../../utils/FormatCategory";
 import type { UserData } from "../../types/user";
 import { getUserData } from "../../api/user";
 import { auth } from "../../firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import ImageButton from "../../components/ImageButton";
 
 export default function Main() {
   const [response, setResponse] = useState<WeatherResponse | null>(null);
   const [user, setUser] = useState(auth.currentUser);
   const [userData, setUserData] = useState<UserData | null>();
+
+  const PTY_MAP: Record<string, string> = {
+    "0": SunnyGIF,
+    "1": RainyGIF,
+    "2": SnowyGIF,
+    "3": SnowyGIF,
+    "5": RainyGIF,
+    "6": SnowyGIF,
+    "7": SnowyGIF,
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -40,14 +56,24 @@ export default function Main() {
   }, [user?.uid]);
 
   useEffect(() => {
+    console.log("userData changed:", userData);
+
     if (!userData?.coordinates) {
+      console.log("coordinates 없음, 날씨 요청 안함");
       return;
     }
+
     const initWeather = async () => {
-      const data = await getWeather(
-        userData?.coordinates.nx,
-        userData?.coordinates.ny
+      console.log(
+        "날씨 API 호출",
+        userData.coordinates.nx,
+        userData.coordinates.ny
       );
+      const data = await getWeather(
+        userData.coordinates.nx,
+        userData.coordinates.ny
+      );
+      console.log("날씨 API 결과:", data);
       if (!data) {
         console.log("값 받아오기 실패");
         return;
@@ -55,7 +81,7 @@ export default function Main() {
       setResponse(data);
     };
     initWeather();
-  }, []);
+  }, [userData]);
 
   const renderWeatherInfoList = useCallback(() => {
     return response?.response.body.items.item.map(
@@ -74,15 +100,45 @@ export default function Main() {
     );
   }, [response]);
 
-  return (
-    <div className="relative w-screen h-screen bg-blue-200">
+  const renderBackground = useCallback(() => {
+    if (!response) {
+      return (
+        <img
+          className="absolute w-screen h-screen object-cover"
+          src={DefaultGIF}
+        />
+      );
+    }
+
+    const ptyItem = response.response.body.items.item.find(
+      (v) => v.category === "PTY"
+    );
+
+    const backgroundSrc = PTY_MAP[ptyItem?.obsrValue ?? ""] ?? DefaultGIF;
+
+    return (
       <img
         className="absolute w-screen h-screen object-cover"
-        src={BackgorundImg}
+        src={backgroundSrc}
+      />
+    );
+  }, [response]);
+
+  return (
+    <div className="relative w-screen h-screen bg-blue-200">
+      {renderBackground()}
+      <img
+        className="absolute w-screen h-screen object-cover"
+        src={WindowGIF}
       />
       <img
         className="w-60 left-1/2 top-1/2 -translate-x-1/2 absolute object-contain"
         src={PlantGIF}
+      />
+      <ImageButton
+        className="w-80 right-1/6 top-1/2 absolute object-contain cursor-pointer"
+        src={DiaryGIF}
+        onClick={() => {console.log('안녕')}}
       />
       <div className="gap-3 absolute">{renderWeatherInfoList()}</div>
     </div>
