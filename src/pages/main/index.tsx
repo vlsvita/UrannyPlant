@@ -2,12 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 import getWeather from "../../api/weather";
 import type { WeatherResponse } from "../../types/weather";
 import PlantGIF from "../../assets/gif/plant.gif";
-import DiaryGIF from "../../assets/gif/diary.gif";
 import WindowGIF from "../../assets/gif/background/window.gif";
 import PageGIF from "../../assets/gif/page.gif";
 import type { UserData } from "../../types/user";
 import { getUserData } from "../../api/user";
 import { auth } from "../../firebase";
+import DiaryGIFKO from "../../assets/gif/diary_ko.gif";
+import DiaryGIFEN from "../../assets/gif/diary_en.gif";
 import { onAuthStateChanged } from "firebase/auth";
 import ImageButton from "../../components/ImageButton";
 import type { DiaryEntry } from "../../types/diary";
@@ -27,7 +28,7 @@ import { Button } from "../../components/Form";
 import { useNavigate } from "react-router";
 
 export default function Main() {
-  const { t } = useTranslation();
+  const { t, i18n} = useTranslation();
   const [response, setResponse] = useState<WeatherResponse | null>(null);
   const [user, setUser] = useState(auth.currentUser);
   const [userData, setUserData] = useState<UserData | null>();
@@ -222,7 +223,7 @@ export default function Main() {
       />
       <ImageButton
         className="w-55 sm:w-60 md:w-65 lg:w-70 xl:w-75 2xl:w-80 -right-5 sm:right-[3vw] md:right-[6vw] lg:right-[9vw] xl:right-[12vw] 2xl:right-[15vw] bottom-[3vh] absolute object-contain cursor-pointer"
-        src={DiaryGIF}
+        src={i18n.language === "ko" ? DiaryGIFKO : DiaryGIFEN}
         onClick={() => {
           setShowPage(true);
         }}
