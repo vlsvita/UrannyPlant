@@ -57,16 +57,16 @@ export default function Main() {
       try {
         const data = await getUserData(user.uid);
         if (!data) {
-          alert("사용자 정보를 불러올 수 없습니다. 다시 로그인해주세요.");
-          navigate(-1)
+          alert(t("error_no_user"));
+          navigate(-1);
           return;
         }
         setUserData(data);
       } catch (error) {
         alert(
-          `사용자 정보를 불러오는 중 오류가 발생했습니다: ${
-            error instanceof Error ? error.message : "알 수 없는 오류"
-          }`
+          t("error_fetch_user", {
+            message: error instanceof Error ? error.message : t("unknown_error"),
+          })
         );
         navigate(-1);
       }
@@ -86,17 +86,17 @@ export default function Main() {
           userData.coordinates.ny
         );
         if (!data) {
-          alert(`날씨 정보를 불러오는 중 오류가 발생했습니다 \n약 20분 후 재시도해보시길 권장드립니다`);
+          alert(t("error_fetch_weather"));
           setLoading(false);
           return;
         }
         setResponse(data);
         setLoading(false);
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "알 수 없는 오류";
         alert(
-          `날씨 정보를 불러오는 중 오류가 발생했습니다: ${errorMessage}\n약 20분 후 재시도해보시길 권장드립니다.`
+          t("error_fetch_weather_detail", {
+            message: error instanceof Error ? error.message : t("unknown_error"),
+          })
         );
         setLoading(false);
         navigate(-1);
@@ -113,9 +113,9 @@ export default function Main() {
         setDiaryList(list);
       } catch (error) {
         alert(
-          `일기 목록을 불러오는 중 오류가 발생했습니다: ${
-            error instanceof Error ? error.message : "알 수 없는 오류"
-          }`
+          t("error_fetch_diary", {
+            message: error instanceof Error ? error.message : t("unknown_error"),
+          })
         );
       }
     };
@@ -124,13 +124,13 @@ export default function Main() {
 
   const handleSaveDiary = useCallback(async () => {
     if (!user?.uid) {
-      alert("로그인이 필요합니다.");
+      alert(t("error_need_login"));
       navigate(-1);
       return;
     }
 
     if (!title.trim() || !content.trim()) {
-      alert("제목과 내용을 입력해주세요");
+      alert(t("error_need_title_content"));
       return;
     }
 
@@ -143,15 +143,15 @@ export default function Main() {
           content: content.trim(),
           updatedAt: now,
         });
-        alert("일기가 수정되었습니다");
+        alert(t("success_diary_update"));
       } else {
         await createDiary(user.uid, {
-          title : title.trim(),
-          content : content.trim(),
+          title: title.trim(),
+          content: content.trim(),
           createdAt: now,
           updatedAt: now,
         });
-        alert("일기가 저장되었습니다");
+        alert(t("success_diary_save"));
       }
 
       setTitle("");
@@ -162,14 +162,16 @@ export default function Main() {
       const list = await fetchDiaries(user.uid);
       setDiaryList(list);
     } catch (error) {
-      const operation = editingId ? "수정" : "저장";
+      const operation = editingId
+        ? t("error_diary_update")
+        : t("error_diary_save");
       alert(
-        `일기 ${operation}에 실패했습니다: ${
-          error instanceof Error ? error.message : "알 수 없는 오류"
-        }`
+        t(operation, {
+          message: error instanceof Error ? error.message : t("unknown_error"),
+        })
       );
     }
-  }, [user?.uid, title, content, editingId, navigate]);
+  }, [user?.uid, title, content, editingId, navigate, t]);
 
   const handleEditDiary = (entry: DiaryEntry) => {
     try {
@@ -179,30 +181,30 @@ export default function Main() {
       setShowInput(true);
     } catch (error) {
       alert(
-        `일기를 불러오는 중 오류가 발생했습니다: ${
-          error instanceof Error ? error.message : "알 수 없는 오류"
-        }`
+        t("error_diary_load", {
+          message: error instanceof Error ? error.message : t("unknown_error"),
+        })
       );
     }
   };
 
   const handleDeleteDiary = async (id: string) => {
     if (!user?.uid) {
-      alert("로그인이 필요합니다");
+      alert(t("error_need_login"));
       return;
     }
 
-    if (!confirm("정말 삭제하시겠습니까?")) return;
+    if (!confirm(t("confirm_delete"))) return;
 
     try {
       await deleteDiary(user.uid, id);
       setDiaryList((prev) => prev.filter((d) => d.id !== id));
-      alert("삭제에 성공했습니다.");
+      alert(t("success_delete"));
     } catch (error) {
       alert(
-        `삭제에 실패했습니다: ${
-          error instanceof Error ? error.message : "알 수 없는 오류"
-        }`
+        t("error_delete", {
+          message: error instanceof Error ? error.message : t("unknown_error"),
+        })
       );
     }
   };
@@ -237,11 +239,7 @@ export default function Main() {
           className="w-screen h-full absolute bg-black/50 backdrop-blur-2xl flex justify-center overflow-y-auto py-21"
         >
           <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <img
-              className="h-[700px] w-auto"
-              src={PageGIF}
-              alt="page"
-            />
+            <img className="h-[700px] w-auto" src={PageGIF} alt="page" />
             <div className="absolute inset-0 flex h-full flex-col items-center">
               {showInput ? (
                 <DiaryInput

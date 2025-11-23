@@ -44,5 +44,21 @@
     "jeju": "Jeju",
     "ieodo": "Ieodo",
     "gangwon": "Gangwon",
-    "jeonbuk": "Jeonbuk"
+    "jeonbuk": "Jeonbuk",
+
+    "error_no_user": "Cannot fetch user info. Please sign in again.",
+    "error_fetch_user": "Error while fetching user info: {{message}}",
+    "error_fetch_weather": "Error while fetching weather info. Please try again in about 20 minutes.",
+    "error_fetch_weather_detail": "Error while fetching weather info: {{message}}\nPlease try again in about 20 minutes.",
+    "error_fetch_diary": "Error while fetching diary list: {{message}}",
+    "error_need_login": "Login required.",
+    "error_need_title_content": "Please enter both title and content.",
+    "success_diary_update": "Diary updated successfully.",
+    "success_diary_save": "Diary saved successfully.",
+    "error_diary_save": "Failed to save diary: {{message}}",
+    "error_diary_update": "Failed to update diary: {{message}}",
+    "error_diary_load": "Error while loading diary: {{message}}",
+    "confirm_delete": "Are you sure you want to delete?",
+    "success_delete": "Deleted successfully.",
+    "error_delete": "Failed to delete: {{message}}"
 }

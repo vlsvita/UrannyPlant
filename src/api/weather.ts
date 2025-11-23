@@ -48,10 +48,8 @@ const getWeather = async (
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data: WeatherResponse = await response.json();
-    console.log(data);
     return data;
   } catch (error) {
-    console.error("Error fetching weather data:", error);
     return;
   }
 };

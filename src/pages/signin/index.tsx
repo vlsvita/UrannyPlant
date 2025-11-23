@@ -18,17 +18,17 @@ export default function Signin() {
         setError("");
 
         if (!email.trim()) {
-            setError("이메일을 입력해주세요");
+            setError(t("input_email"));
             return;
         }
         if (!password.trim()) {
-            setError("비밀번호를 입력해주세요");
+            setError(t("input_password"));
             return;
         }
 
         try {
             await signInWithEmailAndPassword(auth, email.trim(), password.trim());
-            alert("로그인에 성공하셨습니다");
+            alert(t("login_success"));
             navigate("/main");
         } catch (err) {
             if (err instanceof Error) {

@@ -43,18 +43,18 @@ export default function Signup() {
     setError("");
 
     if(!email.trim()){
-      setError("이메일을 입력해주세요");
+      setError(t("input_email"));
       return;
     }
 
     if(!password.trim()){
-      setError("비밀번호를 입력해주세요");
+      setError(t("input_password"));
       return;
     }
 
     // 위치 선택 검증
     if (!location) {
-      setError("위치를 선택해주세요");
+      setError(t("input_location"));
       return;
     }
 
@@ -75,7 +75,7 @@ export default function Signup() {
           ny: coordinates[1],
         },
       });
-      alert("회원가입에 성공하셨습니다")
+      alert(t("signup_success"));
       navigate("/main");
     } catch (err) {
       if (err instanceof FirebaseError) {

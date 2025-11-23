@@ -10,11 +10,9 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
     if (userDocSnap.exists()) {
       return userDocSnap.data() as UserData;
     } else {
-      console.log("사용자 정보를 찾을 수 없습니다.");
       return null;
     }
   } catch (error) {
-    console.error("사용자 정보 가져오기 실패:", error);
     return null;
   }
 };
