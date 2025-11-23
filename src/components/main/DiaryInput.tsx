@@ -14,7 +14,7 @@ export default function DiaryInput({ title, content, setTitle, setContent, onCan
     const {t} = useTranslation()
     return (
         <div className="flex flex-1 flex-col w-full h-full pt-13 pr-16 pl-16 pb-16">
-            <div className="flex flex-1 flex-col w-full">
+            <div className="flex flex-col w-full">
                 <Input
                     isForm={false}
                     type="text"

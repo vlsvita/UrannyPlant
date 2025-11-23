@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { DiaryEntry } from "../../types/diary";
-import { Paragraph, Summary } from "../Texts";
+import { Paragraph } from "../Texts";
 import { TextButton } from "../Form";
 
 interface DiaryListProps {
