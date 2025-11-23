@@ -1,36 +1,77 @@
-import { useState } from 'react';
-import { auth } from '../../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { useNavigate } from 'react-router';
+import { useState } from "react";
+import { auth } from "../../firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
+import { Paragraph, Title } from "../../components/Texts";
+import { Button, Input } from "../../components/Form";
+import NoteGIF from "../../assets/gif/note.gif";
 
 export default function Signin() {
-    const [email, setEmail] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const [error, setError] = useState<string>('');
-    const navigate = useNavigate()
+    const [email, setEmail] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [error, setError] = useState<string>("");
+    const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const handleSignIn = async () => {
-        setError('');
+        setError("");
+
+        if (!email.trim()) {
+            setError("이메일을 입력해주세요");
+            return;
+        }
+        if (!password.trim()) {
+            setError("비밀번호를 입력해주세요");
+            return;
+        }
+
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            console.log('로그인 성공:', userCredential.user);
-            navigate('/main')
+            await signInWithEmailAndPassword(auth, email.trim(), password.trim());
+            alert("로그인에 성공하셨습니다");
+            navigate("/main");
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message);
-                console.error('로그인 실패:', err);
             }
         }
     };
 
     return (
-        <div>
-            <h2>로그인</h2>
-            <input type="email" value={email} placeholder="이메일" onChange={(e) => setEmail(e.target.value)} />
-            <input type="password" value={password} placeholder="비밀번호" onChange={(e) => setPassword(e.target.value)} />
-            <button onClick={handleSignIn}>로그인</button>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <button onClick={() => navigate('/sign-up')}>회원가입 하러 가기</button>
+        <div className="flex justify-center items-center min-h-screen bg-white">
+            <div className="relative flex flex-col items-center w-full max-w-[600px] px-6">
+                <img className="w-full h-auto max-w-[600px]" src={NoteGIF} alt="Note" />
+                <div className="absolute mt-4 w-full max-w-[600px] flex flex-col gap-2 px-36 pt-24 sm:px-48 sm:pt-32">
+                    <Title>{t("sign_in")}</Title>
+                    <div className="flex flex-col gap-2 w-full">
+                        <Input
+                            isForm
+                            type="email"
+                            value={email}
+                            placeholder={t("input_email")}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <Input
+                            isForm
+                            type="password"
+                            value={password}
+                            placeholder={t("input_password")}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                        {error && <Paragraph className="text-red-500">{error}</Paragraph>}
+                        <div className="flex gap-2">
+                            <Button onClick={handleSignIn}>
+                                {t("sign_in")}
+                            </Button>
+                            <Button onClick={() => navigate("/sign-up")} className="flex-1">
+                                {t("to_sign_up")}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

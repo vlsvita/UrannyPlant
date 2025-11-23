@@ -11,13 +11,23 @@ import { auth } from "../../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import ImageButton from "../../components/ImageButton";
 import type { DiaryEntry } from "../../types/diary";
-import { createDiary, deleteDiary, fetchDiaries, updateDiary } from "../../api/diary";
-import WeatherInfo from "../../components/main/WeatherInfo";
+import NoteGIF from "../../assets/gif/note.gif";
+import {
+  createDiary,
+  deleteDiary,
+  fetchDiaries,
+  updateDiary,
+} from "../../api/diary";
 import BackgroundImage from "../../components/main/BackgroundImage";
 import DiaryList from "../../components/main/DiaryList";
 import DiaryInput from "../../components/main/DiaryInput";
+import { useTranslation } from "react-i18next";
+import { Summary, Title } from "../../components/Texts";
+import { Button } from "../../components/Form";
+import { useNavigate } from "react-router";
 
 export default function Main() {
+  const { t } = useTranslation();
   const [response, setResponse] = useState<WeatherResponse | null>(null);
   const [user, setUser] = useState(auth.currentUser);
   const [userData, setUserData] = useState<UserData | null>();
@@ -29,6 +39,7 @@ export default function Main() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [diaryList, setDiaryList] = useState<DiaryEntry[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -39,55 +50,74 @@ export default function Main() {
 
   useEffect(() => {
     if (!user?.uid) {
-      console.log("사용자가 로그인하지 않았습니다.");
       return;
     }
 
     const fetchUserData = async () => {
-      const data = await getUserData(user.uid);
-      if (!data) {
-        console.log("사용자 정보 받아오기 실패");
-        return;
+      try {
+        const data = await getUserData(user.uid);
+        if (!data) {
+          alert("사용자 정보를 불러올 수 없습니다. 다시 로그인해주세요.");
+          navigate(-1)
+          return;
+        }
+        setUserData(data);
+      } catch (error) {
+        alert(
+          `사용자 정보를 불러오는 중 오류가 발생했습니다: ${
+            error instanceof Error ? error.message : "알 수 없는 오류"
+          }`
+        );
+        navigate(-1);
       }
-      setUserData(data);
     };
 
     fetchUserData();
   }, [user?.uid]);
 
   useEffect(() => {
-    console.log("userData changed:", userData);
-
     if (!userData?.coordinates) {
-      console.log("coordinates 없음, 날씨 요청 안함");
       return;
     }
-
     const initWeather = async () => {
-      console.log(
-        "날씨 API 호출",
-        userData.coordinates.nx,
-        userData.coordinates.ny
-      );
-      const data = await getWeather(
-        userData.coordinates.nx,
-        userData.coordinates.ny
-      );
-      console.log("날씨 API 결과:", data);
-      if (!data) {
-        console.log("값 받아오기 실패");
-        return;
+      try {
+        const data = await getWeather(
+          userData.coordinates.nx,
+          userData.coordinates.ny
+        );
+        if (!data) {
+          alert(`날씨 정보를 불러오는 중 오류가 발생했습니다 \n약 20분 후 재시도해보시길 권장드립니다`);
+          setLoading(false);
+          return;
+        }
+        setResponse(data);
+        setLoading(false);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "알 수 없는 오류";
+        alert(
+          `날씨 정보를 불러오는 중 오류가 발생했습니다: ${errorMessage}\n약 20분 후 재시도해보시길 권장드립니다.`
+        );
+        setLoading(false);
+        navigate(-1);
       }
-      setResponse(data);
     };
     initWeather();
-  }, [userData]);
+  }, [userData, navigate]);
 
   useEffect(() => {
     if (!user?.uid) return;
     const load = async () => {
-      const list = await fetchDiaries(user.uid);
-      setDiaryList(list);
+      try {
+        const list = await fetchDiaries(user.uid);
+        setDiaryList(list);
+      } catch (error) {
+        alert(
+          `일기 목록을 불러오는 중 오류가 발생했습니다: ${
+            error instanceof Error ? error.message : "알 수 없는 오류"
+          }`
+        );
+      }
     };
     load();
   }, [user?.uid]);
@@ -95,11 +125,12 @@ export default function Main() {
   const handleSaveDiary = useCallback(async () => {
     if (!user?.uid) {
       alert("로그인이 필요합니다.");
+      navigate(-1);
       return;
     }
 
     if (!title.trim() || !content.trim()) {
-      alert("제목과 내용을 입력해주세요.");
+      alert("제목과 내용을 입력해주세요");
       return;
     }
 
@@ -107,52 +138,72 @@ export default function Main() {
       const now = Date.now();
 
       if (editingId) {
-        // 수정 모드일 경우
         await updateDiary(user.uid, editingId, {
-          title,
-          content,
+          title: title.trim(),
+          content: content.trim(),
           updatedAt: now,
         });
+        alert("일기가 수정되었습니다");
       } else {
-        // 새 일기 작성
         await createDiary(user.uid, {
-          title,
-          content,
+          title : title.trim(),
+          content : content.trim(),
           createdAt: now,
           updatedAt: now,
         });
+        alert("일기가 저장되었습니다");
       }
 
-      // 입력 초기화
       setTitle("");
       setContent("");
       setEditingId(null);
       setShowInput(false);
 
-      // 최신 일기 가져오기
       const list = await fetchDiaries(user.uid);
       setDiaryList(list);
     } catch (error) {
-      console.error("일기 저장 실패:", error);
-      alert("일기 저장에 실패했습니다.");
+      const operation = editingId ? "수정" : "저장";
+      alert(
+        `일기 ${operation}에 실패했습니다: ${
+          error instanceof Error ? error.message : "알 수 없는 오류"
+        }`
+      );
     }
-  }, [user?.uid, title, content, editingId]);
+  }, [user?.uid, title, content, editingId, navigate]);
 
   const handleEditDiary = (entry: DiaryEntry) => {
-    setTitle(entry.title);
-    setContent(entry.content);
-    setEditingId(entry.id);
-    setShowInput(true);
+    try {
+      setTitle(entry.title);
+      setContent(entry.content);
+      setEditingId(entry.id);
+      setShowInput(true);
+    } catch (error) {
+      alert(
+        `일기를 불러오는 중 오류가 발생했습니다: ${
+          error instanceof Error ? error.message : "알 수 없는 오류"
+        }`
+      );
+    }
   };
 
   const handleDeleteDiary = async (id: string) => {
-    if (!user?.uid) return;
+    if (!user?.uid) {
+      alert("로그인이 필요합니다");
+      return;
+    }
+
+    if (!confirm("정말 삭제하시겠습니까?")) return;
+
     try {
       await deleteDiary(user.uid, id);
       setDiaryList((prev) => prev.filter((d) => d.id !== id));
+      alert("삭제에 성공했습니다.");
     } catch (error) {
-      console.error("삭제 실패:", error);
-      alert("삭제에 실패했습니다.");
+      alert(
+        `삭제에 실패했습니다: ${
+          error instanceof Error ? error.message : "알 수 없는 오류"
+        }`
+      );
     }
   };
 
@@ -164,21 +215,33 @@ export default function Main() {
         src={WindowGIF}
       />
       <img
-        className="w-60 left-1/2 top-1/2 -translate-x-1/2 absolute object-contain"
+        className="w-45 sm:w-48 md:w-51 lg:w-54 xl:w-57 2xl:w-60 left-1/2 bottom-[3vh] -translate-x-1/2 absolute object-contain"
         src={PlantGIF}
       />
       <ImageButton
-        className="w-80 right-1/6 top-1/2 absolute object-contain cursor-pointer"
+        className="w-55 sm:w-60 md:w-65 lg:w-70 xl:w-75 2xl:w-80 -right-5 sm:right-[3vw] md:right-[6vw] lg:right-[9vw] xl:right-[12vw] 2xl:right-[15vw] bottom-[3vh] absolute object-contain cursor-pointer"
         src={DiaryGIF}
         onClick={() => {
           setShowPage(true);
         }}
       />
-      <WeatherInfo response={response} />
       {showPage && (
-        <div className="w-screen h-full absolute bg-black/50 backdrop-blur-2xl flex items-center justify-center">
-          <div className="relative">
-            <img className="h-[80vh] w-auto" src={PageGIF} alt="page" />
+        <div
+          onClick={() => {
+            setTitle("");
+            setContent("");
+            setEditingId(null);
+            setShowPage(false);
+            setShowInput(false);
+          }}
+          className="w-screen h-full absolute bg-black/50 backdrop-blur-2xl flex justify-center overflow-y-auto py-21"
+        >
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <img
+              className="h-[700px] w-auto"
+              src={PageGIF}
+              alt="page"
+            />
             <div className="absolute inset-0 flex h-full flex-col items-center">
               {showInput ? (
                 <DiaryInput
@@ -186,36 +249,59 @@ export default function Main() {
                   content={content}
                   setTitle={setTitle}
                   setContent={setContent}
-                  onCancel={() => setShowInput(false)}
+                  onCancel={() => {
+                    setTitle("");
+                    setContent("");
+                    setEditingId(null);
+                    setShowInput(false);
+                  }}
                   onSave={handleSaveDiary}
                 />
               ) : (
-                <div className="flex flex-1 flex-col w-full pt-13 pr-16 pl-16 pb-16">
+                <div
+                  className="flex flex-col w-full pt-13 pr-16 pl-16 pb-16"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="flex flex-1 flex-col w-full h-full">
-                    <p>내 일기 목록</p>
+                    <Summary>{t("my_diary_list")}</Summary>
                     <DiaryList
                       diaryList={diaryList}
                       onEdit={handleEditDiary}
                       onDelete={handleDeleteDiary}
                     />
                   </div>
-                  <div className="flex flex-row">
-                    <button
-                      onClick={() => setShowPage(false)}
-                      className="w-full mt-3 text-lg cursor-pointer"
+                  <div className="flex flex-row gap-2">
+                    <Button
+                      onClick={() => {
+                        setTitle("");
+                        setContent("");
+                        setEditingId(null);
+                        setShowPage(false);
+                      }}
+                      className="w-full mt-3 text-lg"
                     >
-                      나가기
-                    </button>
-                    <button
+                      {t("cancel")}
+                    </Button>
+                    <Button
                       onClick={() => setShowInput(true)}
-                      className="w-full mt-3 text-lg cursor-pointer"
+                      className="w-full mt-3 text-lg"
                     >
-                      일기 쓰기
-                    </button>
+                      {t("create")}
+                    </Button>
                   </div>
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+      {loading && (
+        <div className="w-screen h-full absolute bg-black/50 backdrop-blur-2xl flex items-center justify-center">
+          <div className="w-full max-w-[600px] relative inset-0">
+            <img className="w-full" src={NoteGIF} />
+            <Title className="absolute top-1/2 -translate-y-2/3 left-1/2 -translate-x-1/2">
+              {t("loading_weather")}
+            </Title>
           </div>
         </div>
       )}
