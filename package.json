@@ -4,11 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "proxy": "http://apis.data.go.kr/",
+  "homepage": "https://vlsvita.github.io/uranny_plant/",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.17",
@@ -32,6 +34,7 @@
     "globals": "^16.5.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.3",
-    "vite": "^7.2.2"
+    "vite": "^7.2.2",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }
